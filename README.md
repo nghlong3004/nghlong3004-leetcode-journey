@@ -22,6 +22,7 @@ Make sure you have Maven installed, then run:
 
 ```bash
 mvn clean compile
+```
 
 ## 🎯 Goals
 - Solve at least one LeetCode problem every day
