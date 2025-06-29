@@ -1,0 +1,8 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.nghlong3004</groupId>
+  <artifactId>nghlong3004-leetcode-journey</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <name>LeetCode Journey</name>
+  <description>Daily practice, notes, and solutions for LeetCode problems. Documenting the journey of improving algorithmic thinking and problem solving skills in Java.</description>
+</project>
