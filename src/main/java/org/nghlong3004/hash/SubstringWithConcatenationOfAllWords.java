@@ -7,100 +7,107 @@ import java.util.Map;
 
 public class SubstringWithConcatenationOfAllWords {
 
-	class Hash {
-
-		private final long BASE;
-		private final long MOD;
-		private final int N;
-
+	static class RollingHash {
+		private final long BASE = 31;
+		private final long MOD = 1_000_000_007;
 		private long[] pow;
-		private long[] hashTable;
+		private long[] hash;
 
-		public Hash(String s, int n) {
-			BASE = (long) 31;
-			MOD = (long) 1000000007;
-			N = 10009;
-
-			pow = new long[N];
-			hashTable = new long[N];
-			precalculateBasePower(s, n);
-		}
-
-		protected Long getHashValue(int l, int r) {
-			return (hashTable[r] - hashTable[l - 1] * pow[r - l + 1] + MOD * MOD) % MOD;
-		}
-
-		private void precalculateBasePower(String s, int n) {
+		public RollingHash(String s) {
+			int n = s.length();
+			pow = new long[n + 1];
+			hash = new long[n + 1];
 			pow[0] = 1;
 			for (int i = 1; i <= n; ++i) {
 				pow[i] = (pow[i - 1] * BASE) % MOD;
-			}
-			hashTable[0] = 0;
-			for (int i = 1; i <= n; ++i) {
-				hashTable[i] = (hashTable[i - 1] * BASE + s.charAt(i) - 'a' + 1) % MOD;
+				hash[i] = (hash[i - 1] * BASE + s.charAt(i - 1) - 'a' + 1) % MOD;
 			}
 		}
 
-		protected long calculateHashValue(String s, int n) {
-			long hashValue = 0;
-			for (int i = 1; i <= n; ++i) {
-				hashValue = (hashValue * BASE + s.charAt(i) - 'a' + 1) % MOD;
-			}
-
-			return hashValue;
+		public long getHash(int l, int r) {
+			return (hash[r] - hash[l] * pow[r - l] % MOD + MOD) % MOD;
 		}
 
+		public long computeHash(String s) {
+			long h = 0;
+			for (int i = 0; i < s.length(); ++i) {
+				h = (h * BASE + s.charAt(i) - 'a' + 1) % MOD;
+			}
+			return h;
+		}
 	}
 
-	class Solution {
-		private Map<Long, Integer> map;
+	static class WordFrequency {
+		private final Map<Long, Integer> freqMap = new HashMap<>();
 
-		public Solution() {
-			map = new HashMap<Long, Integer>();
+		public void addWord(long hash) {
+			freqMap.merge(hash, 1, Integer::sum);
 		}
 
-		private void initMap(String[] words, Hash hash) {
-			for (int i = 0; i < words.length; ++i) {
-				words[i] = '$' + words[i];
-			}
+		public boolean consumeWord(long hash) {
+			Integer count = freqMap.get(hash);
+			if (count == null || count == 0)
+				return false;
+			freqMap.put(hash, count - 1);
+			return true;
+		}
+
+		public WordFrequency copy() {
+			WordFrequency copy = new WordFrequency();
+			copy.freqMap.putAll(this.freqMap);
+			return copy;
+		}
+	}
+
+	static class SubstringFinder {
+		private final RollingHash rollingHash;
+		private final int wordSize;
+		private final int numWords;
+		private final List<Long> wordHashes;
+
+		public SubstringFinder(String s, String[] words) {
+			this.rollingHash = new RollingHash(s);
+			this.wordSize = words[0].length();
+			this.numWords = words.length;
+			this.wordHashes = new ArrayList<>();
+			RollingHash hashUtil = new RollingHash("");
 			for (String word : words) {
-				long hashValue = hash.calculateHashValue(word, word.length() - 1);
-				map.merge(hashValue, 1, Integer::sum);
+				wordHashes.add(hashUtil.computeHash(word));
 			}
 		}
 
-		public List<Integer> findSubstring(String s, String[] words) {
-			List<Integer> result = new ArrayList<Integer>();
-			int n = s.length();
-			s = " " + s;
-			int size = words[0].length();
-			Hash hash = new Hash(s, n);
-			initMap(words, hash);
-			for (int i = 1; i <= n + 1; ++i) {
-				if (i + words.length * size > n + 1) {
-					break;
-				}
-				Map<Long, Integer> newMap = new HashMap<Long, Integer>(map);
-				boolean flag = true;
-				for (int j = 1; j <= words.length; ++j) {
-					Long hashValue = hash.getHashValue(i + (j - 1) * size, i + j * size - 1);
-					int quantity = newMap.getOrDefault(hashValue, -1);
-					if (quantity <= 0) {
-						flag = false;
+		public List<Integer> findSubString(String s, String[] words) {
+			List<Integer> result = new ArrayList<>();
+			WordFrequency freq = new WordFrequency();
+			for (Long h : wordHashes)
+				freq.addWord(h);
+
+			int totalLen = wordSize * numWords;
+
+			for (int i = 0; i + totalLen <= s.length(); ++i) {
+				WordFrequency windowFreq = freq.copy();
+				boolean match = true;
+				for (int j = 0; j < numWords; ++j) {
+					int start = i + j * wordSize;
+					int end = start + wordSize;
+					long h = rollingHash.getHash(start, end);
+					if (!windowFreq.consumeWord(h)) {
+						match = false;
 						break;
 					}
-					newMap.put(hashValue, quantity - 1);
 				}
-				if (flag) {
-					result.add(i - 1);
-				}
+				if (match)
+					result.add(i);
 			}
 			return result;
 		}
 	}
 
 	public static void main(String[] args) {
-
+		String s = "barfoothefoobarman";
+		String[] words = { "foo", "bar" };
+		SubstringFinder finder = new SubstringFinder(s, words);
+		List<Integer> indices = finder.findSubString(s, words);
+		System.out.println(indices);
 	}
-
 }
