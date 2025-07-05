@@ -13,7 +13,6 @@ This repository contains:
 ## 🗂️ Project Structure
 
 - `src/main/java`: Java source code of solutions
-- `src/test/java`: (optional) unit tests
 - `pom.xml`: Maven project configuration file
 
 ## 🚀 How to Build
@@ -21,7 +20,7 @@ This repository contains:
 Make sure you have Maven installed, then run:
 
 ```bash
-mvn clean compile
+mvn clean build
 ```
 
 ## 🎯 Goals
